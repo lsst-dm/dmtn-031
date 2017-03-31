@@ -33,7 +33,9 @@ The first difference between OPMb and PPMb is found in the space these pairs are
 Algorithm step-by-step
 ----------------------
 
-The PPMb algorithm beings by creating the data structures needed to both search for individual pattern spokes based on their distance and futher compare the opening angle between different spoke lengths.
+The PPMb algorithm beings by creating the data structures needed to both search for individual pattern spokes based on their distance and futher compare the opening angle between different spoke lengths. We each reference pair we precompute the vector deltas: :math:`v_A - v_B`, distances: :math:`|v_A - v_B|`, catalog IDs of the objects that make up the pair. Each of these arrays is sorted by distance. We also store a lookup table of indicies that allows the code access all the pairs featuring a reference with a given ID while preserving the pair distance ordering.
+
+We begin the matching first by sorting our source catalog in magnitude from brightest to faintest. The motivation for this is that the brightest objects are also the rarest and more likely to be uniquely matched between the source and reference catalogs. To attempt the matching we 
 
 Automated tolerances
 --------------------
