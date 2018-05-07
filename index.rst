@@ -5,48 +5,49 @@ Pessimistic pattern matching for LSST
 Introduction
 ============
 
-The Large Synoptic Survey Telescope (LSST) ``stack`` currently uses an implementation of [tabur07]_'s 
-Optimistic Pattern Matcher B (OPMb) for blind astrometric matching to a reference catalog. This has been found 
-to have a significant failure mode in very dense stellar fields with ~1000 references per-ccd. This is caused 
-by  the algorithm being too greedy and finding false astrometric matches due to the matching space no longer 
-being sparse at these densities. Rather than fine tune parameters for this algorithm to match successfully, we 
-attempt to generalize the [tabur07]_ algorithm to work consistently over the large range of stellar densities 
-expected in LSST. In this work we present Pessimistic Pattern Matcher B (PPMb) that performs over the full 
-dynamic range of densities expected in LSST.
+The Large Synoptic Survey Telescope (LSST) “Stack” currently uses an implementation of [tabur07]_'s Optimistic
+Pattern Matcher B (OPMb) for blind astrometric matching to a reference catalog. This has been found to have a
+significant failure mode in very dense stellar fields with ~1000 references per CCD. This is caused by the
+algorithm being too greedy and finding false astrometric matches due to the matching space no longer being
+sparse at these densities. Rather than fine tune parameters for this algorithm to match successfully, we
+generalize the [tabur07]_ algorithm to work consistently over the large range of stellar densities expected in
+LSST. In this work we present Pessimistic Pattern Matcher B (PPMb), which operates over the full dynamic range
+of densities expected in LSST.
 
 Method overview
 ===============
 
 In this section we describe the modifications and generalizations we make to OPMb to create PPMb. Like OPMb,
-PPMb relies on matching :math:`N` point pinwheel patterns between a source catalog and a catalog of astrometric
-reference objects. This allows the matching to account for both shifts and rotations in the WCS with some
-allowance for distortion or scaling. Searching for such pinwheel shapes rather than triangles allows for
-efficient creation of, and searching for patterns "on the fly" [tabur07]_ rather than pre-computing all of the
-:math:`n (n - 1) (n - 2) / 6` unique triangles available in a reference catalog with :math:`n` elements.
+PPMb relies on matching :math:`N` point pinwheel patterns between a source catalog and a catalog of
+astrometric reference objects. This allows the matching to account for both shifts and rotations in the WCS
+with some allowance for distortion or scaling. Searching for such pinwheel shapes rather than triangles allows
+for efficient creation of, and searching for patterns "on the fly" [tabur07]_ rather than pre-computing all of
+the :math:`n (n - 1) (n - 2) / 6` unique triangles available in a reference catalog with :math:`n` elements.
 Instead the algorithms need only pre-compute the :math:`n (n - 1) / 2` unique pairs between reference objects.
-In [tabur07]_ OPMb is tested only up to 100's of reference objects in a given observation. In the Galactic
-plane, using the GAIA catalog as a reference, there can be of order 5000 reference objects in single CCD with
-a similar or greater number of detected sources. This causes challenges for the algorithm as implemented in
-the ``stack`` and results in false positive matches causing poor astrometric solutions for these fields.
+In [tabur07]_ OPMb is tested only up to hundreds of reference objects in a given observation. However, in the
+galactic plane, using the Gaia catalog as a reference, there can be of order 5000 reference objects in single
+CCD with a similar or greater number of detected sources. This causes challenges for the algorithm as
+implemented in the Stack and results in false positive matches causing poor astrometric solutions for these
+fields.
 
 Primary Algorithmic Differences in PPMb
 ---------------------------------------
 
 PPMb follows a very similar algorithmic flow to that of OPMb with several key differences that we list below.
 
-- PPMB matches to the reference catalog on the unit sphere rather than a tangent plane. As implemented in the
-  ``stack``, OPMb relies on an intermediate tangent plane calculated from the mean positions of the
-  astrometric references in RA/DEC and detected sources in x, y on the CCD to compute matches. PPMb avoids
-  this by attempting to find astrometric matches directly on the unit sphere of RA, DEC.
+- PPMb matches to the reference catalog on the unit sphere rather than a tangent plane. As implemented in the
+  Stack, OPMb relies on an intermediate tangent plane calculated from the mean positions of the astrometric
+  references in RA/dec and detected sources in x, y on the CCD to compute matches. PPMb avoids this by
+  attempting to find astrometric matches directly on the unit sphere of RA, dec.
 
 - Can require that a specified number of successful pattern matches with the same shift and rotation on the sky
-  be found before returning an affirmative match. This is useful in fields with a very high number of 
-  astrometric reference objects where matching an :math:`N` point pattern at a realistic tolerance is fairly 
+  be found before returning an affirmative match. This is useful in fields with a very high number of
+  astrometric reference objects where matching an :math:`N` point pattern at a realistic tolerance is fairly
   common. This allows PPMb to exclude false positive matches even for relatively loose tolerances.
 
 - Allows for matching a pattern of :math:`N` spokes from :math:`M` points where :math:`M` can be greater than
-  :math:`(N + 1)`. This allows the matcher skip over objects that may not be in the reference sample due the
-  astrometric reference sample, for instance, being observed in a different bandpass filter.
+  :math:`(N + 1)`. This allows the matcher skip over objects that may not be in the reference sample due to
+  the astrometric reference sample, for instance, being observed in a different bandpass filter.
 
 - Automatically estimates matching tolerances from the input data rather than requiring arbitrary tolerances
   to be set. Arbitrarily setting the tolerance can lead to instances of false positives or long run times as
@@ -54,13 +55,13 @@ PPMb follows a very similar algorithmic flow to that of OPMb with several key di
 
 - Treats both the shift and rotation as matching parameters as known upper bounds. That is the pointing and
   rotation of the telescope are known to within some precision and can be set based on the the known pointing
-  imercistion of the telescope the data being processed are from. The current ``stack`` implementation of OPMb
+  imercistion of the telescope the data being processed are from. The current Stack implementation of OPMb
   treats these later of these parameters as not intrinsic but a parameter to be soften.
 
 - The algorithm tightens the maximum shift in addition to matching tolerance as the match-fit cycle of
-  the ``stack`` improves. Since the current ``stack`` implementation uses an intermediate tangent plane
-  calculated from the mean RA/DEC and x,y positions of the references and sources, it is thus unable to
-  utilize such a tightening. Tightening the maximum shift allows the code to find a match much more rapidly in 
+  the Stack improves. Since the current Stack implementation uses an intermediate tangent plane
+  calculated from the mean RA/dec and x,y positions of the references and sources, it is thus unable to
+  utilize such a tightening. Tightening the maximum shift allows the code to find a match much more rapidly in
   later iterations of the WCS match-fit cycle.
 
 Algorithm step-by-step
@@ -68,26 +69,26 @@ Algorithm step-by-step
 
 The PPMb algorithm beings by creating the data structures needed to both search for individual pattern spokes
 based on their distance and further compare the opening angle between different spokes. For each reference
-pair we pre-compute the 3-vector deltas: :math:`v_{\Delta}=v_A - v_B`, distances: :math:`|v_A - v_B|`, and catalog IDs of
-the objects that make up the pair. Each of these arrays is sorted by the distance. We additionally store a
-lookup table of indicies that allows the code to access all the pairs featuring a reference object with a
-given ID quickly while preserving the pair distance ordering.
+pair we pre-compute the 3-vector deltas: :math:`v_{\Delta}=v_A - v_B`, distances: :math:`|v_A - v_B|`, and
+catalog IDs of the objects that make up the pair. Each of these arrays is sorted by the distance. We
+additionally store a lookup table of indicies that allows the code to access all the pairs featuring a
+reference object with a given ID quickly while preserving the pair distance ordering.
 
-Both OPMb and PPMb construct pinwheel shapes that are used to search within the reference objects from the 
-detected source catalog by ordering the objects in the catalog from brightest to faintest flux. The pinwheel 
-is created by choosing the first first :math:`N` brightest objects, treating the brightest of these as the 
-pinwheel center. If this pattern is not found in the astromtetric references then the brightest source is 
-discarded and a new N point pinwheel is constructed starting with the second brightest object and so on until 
-a requested number of patterns have been tested. In [tabur07]_ they suggest testing 50 patterns. Currently the 
+Both OPMb and PPMb construct pinwheel shapes that are used to search within the reference objects from the
+detected source catalog by ordering the objects in the catalog from brightest to faintest flux. The pinwheel
+is created by choosing the first first :math:`N` brightest objects, treating the brightest of these as the
+pinwheel center. If this pattern is not found in the astromtetric references then the brightest source is
+discarded and a new N point pinwheel is constructed starting with the second brightest object and so on until
+a requested number of patterns have been tested. In [tabur07]_ they suggest testing 50 patterns. Currently the
 LSST stack is set by default to test 150.
 
 Shift and rotation tests
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
-After selecting :math:`N` sources ordered from brightest we compute the :math:`v_{\Delta}` of the first two 
-brightest points, and search for reference pairs with a distance :math:`|v_R|` that have the same length to 
-within :math:`\pm \delta_{tol}` of the length of the source vector :math:`|v_S|`. We test each of these 
-reference pairs from the smallest length difference :math:`\Delta = abs(|v_S| - |v_R|)` to the largest, 
+After selecting :math:`N` sources ordered from brightest we compute the :math:`v_{\Delta}` of the first two
+brightest points, and search for reference pairs with a distance :math:`|v_R|` that have the same length to
+within :math:`\pm \delta_{tol}` of the length of the source vector :math:`|v_S|`. We test each of these
+reference pairs from the smallest length difference :math:`\Delta = abs(|v_S| - |v_R|)` to the largest,
 assuming that the correct pattern has nearly the same length for the source and length deltas.
 
 These candidate pairs are then tested by first selecting one of the two reference points that make up the pair
@@ -111,7 +112,7 @@ number of reference pairs we need to search by using the ID lookup table we crea
 reference pairs that contain our candidate reference center. This speeds op the next stages of the search
 significantly. As with the first two points we test the length of the vector between the brightest source and
 3rd brightest source object against all of the reference pairs that contain the current candidate reference
-center. We again sort reference pair candidates from the smallest absolute length difference to the largest. 
+center. We again sort reference pair candidates from the smallest absolute length difference to the largest.
 
 Once we have the candidates for this source spoke we need only test that the opening angle between this spoke
 and initial spoke are within tolerance to the angle formed by the candidate reference objects. We make the
@@ -124,7 +125,7 @@ testing and the spoke created by the two brightest source objects in the pattern
 candidate reference spoke we are testing against. Given the length of the source spoke being tested, we create
 an angle tolerance by computing
 
-.. math:: \delta_{ang} = \frac{\delta}}{L + \delta}
+.. math:: \delta_{ang} = \frac{\delta}{L + \delta}
 
 where L is the length of the source spoke. This sets the opening angle tolerance assuming :math:`L >> \delta`
 and also simplifies the tolerances that need be specified beforehand. We set a limit that this angle be less
@@ -134,8 +135,8 @@ cases where :math:`L >> \delta` is not held, we instead set the opening angle to
 :math:`0.0447`.
 
 To test the opening angle against the current tolerance for this spoke, we compute the normalized dot-product
-between our source spoke to the first source spoke and do the same with the candidate reference spokes. We 
-then test the difference of these two :math:`cosines`:
+between our source spoke to the first source spoke and do the same with the candidate reference spokes. We
+then test the difference of these two cosines:
 
 .. math:: cos(\theta_{src}) - cos(\theta_{ref})
 
@@ -145,20 +146,20 @@ values of :math:`\delta_{ang}` then we can write our test as
 .. math:: - \delta_{ang} sin(\theta_{ref}) < cos(\theta_{src}) - cos(\theta_{ref}) < \delta_{ang} sin(\theta_{ref})
 
 For computational purposes we square this equation as have not yet computed :math:`sin(\theta_{ref})`. The
-test for the difference of :math:`cosines` is then
+test for the difference of cosines is then
 
 .. math:: (cos(\theta_{src}) - cos(\theta_{ref}))^2 < \delta_{ang}^2 (1 - cos(\theta_{ref})^2)
 
-This test on the difference in cosines is not sufficient to know that the two opening angles are the same 
-within tolerance. To completely test that the angles are within tolerance we also need to test the
-:math:`sine` of the angles. where the previous test first computed the dot-products between source and
-reference vectors to get the :math:`cosine`s, we compute the normalized cross-product between the two source 
-spokes and likewise the reference spokes. This produces vectors with lengths :math:`sin(\theta_{src})` and
-:math:`sin(\theta_{ref})` respectively. These vectors can be dotted into the center point of the the
-respective patterns they are derived from giving the value of the sine. It should be noted here that the value
-is approximate as the vectors are likely slightly misaligned to that of center points,  artificially
-decreasing the amplitude of the sine. However, on the scale of a a CCD, the vectors we are comparing should be
-within the plane of the sky and thus the comparison holds.
+This test on the difference in cosines is not sufficient to know that the two opening angles are the same
+within tolerance. To completely test that the angles are within tolerance we also need to test the sine of the
+angles. where the previous test first computed the dot-products between source and reference vectors to get
+the cosines, we compute the normalized cross-product between the two source spokes and likewise the reference
+spokes. This produces vectors with lengths :math:`sin(\theta_{src})` and :math:`sin(\theta_{ref})`
+respectively. These vectors can be dotted into the center point of the the respective patterns they are
+derived from giving the value of the sine. It should be noted here that the value is approximate as the
+vectors are likely slightly misaligned to that of center points,  artificially decreasing the amplitude of the
+sine. However, on the scale of a a CCD, the vectors we are comparing should be within the plane of the sky and
+thus the comparison holds.
 
 If we again Taylor expand for small angle differences the comparison becomes
 
@@ -232,7 +233,7 @@ Softening tolerances
 --------------------
 
 PPMb has two main tolerances which can be softened as subsequent attempts are made to match the
-source data to the reference catalog. These are the maximum match distance :match:`\delta` and the number of
+source data to the reference catalog. These are the maximum match distance :math:`\delta` and the number of
 spokes we allow to fail before moving on to the next center point. We soften the match distance by doubling
 it each after the number of patterns requested has failed. We also independently add 1 to number of spokes
 allowed to fail. These two softenings allow the algorithm enough flexibility to match to most stellar
@@ -241,12 +242,17 @@ densities, cameras, and filters.
 Test datasets
 =============
 
-To test the performance of the pessimistic matcher we utilize several currently available datasets. These data span a range of stellar density and quality of optical distortion models. We process these data in the context of the LSST Stack version 14. It should be noted that this analysis was completed before the merging of DM-10765 which changed the WCS properties of the stack. For each of these data we use the same set of reference objects derived from the GAIA DR1 [GAIA CITE] dataset. [HOW MUCH DETAIL SHOULD I PUT INTO THESE DESCRIPTIONS?]
+To test the performance of the pessimistic matcher we utilize several currently available datasets. These data
+span a range of stellar density and quality of optical distortion models. We process these data in the context
+of the LSST Stack version 14. It should be noted that this analysis was completed before the merging of
+DM-10765 which changed the WCS properties of the stack. For each of these data we use the same set of
+reference objects derived from the GAIA DR1 [GAIA CITE] dataset. [HOW MUCH DETAIL SHOULD I PUT INTO THESE
+DESCRIPTIONS?]
 
 CFHTLS
 ------
 
-We use data from the Canada-France-Hawaii Telescope Legacy Survey (CFHTLS) [CFHTLS CITE] observed at
+We use data from the Canada-France-Hawaii Telescope Legacy Survey (CFHTLS) [CFHTLS CITE] observed at the
 Canada-France-Hawaii Telescope with MegaCam. The dat come from the W3 pointing of the Wide portion of the
 CFHTLS survey. We use a total number of 325 visits (start 704382) in the g and r bands, and 56 visits each in
 u (850245), i (705243), and z(850255) filters. This give a total of 17,700 CCD exposures to blindly match.
@@ -271,7 +277,7 @@ Results
 =======
 
 In this section we present results from running the PPMb matching algorithm within the match/fit cycle of
-AstronomyTask within the ``meas_astrom`` package of the LSST ``stack`` on the data described previously. We
+AstronomyTask within the ``meas_astrom`` package of the LSST Stack on the data described previously. We
 additionally run the default algorithm OptimisticPatternMatcherB (OPMb) on the same data. We divide the
 results into 3 major sections. First we show present the fraction of CCD exposures from each dataset that
 found a good astrometric solution. Next we present a comparison of the quality of the matches found by
@@ -292,7 +298,7 @@ solution after a successful match. These numbers were derived from confirming su
 noting the RMS scatter in arcseconds of the final astrometric solution. ``N Successful CCDs`` is the number
 of CCD-exposures where we find a match and meet this criteria while ``N Failed Match`` are the number of CCDs
 where a match to the reference catalog was unable to be found. The success rate is ``N Successful CCDs`` over
-the total CCD-exposures available. 
+the total CCD-exposures available.
 
 CFHTLS Matching
 ^^^^^^^^^^^^^^^
@@ -456,18 +462,18 @@ Timing match/fit cycle timing
 -----------------------------
 
 One concern with the generalizations added to OPMb to make PPMb is if the algorithm can still find matches in
-wall clock time comparable to that of the current ``stack`` implementation of OPMb. In this section we
-present timing results both for a field with low density and with a high density. We count the time spent
-matching from the moment the ``doMatches`` is called till an array of matches (even if it is empty) is
-returned. We run through all CCDs in the CFHTLS in the g, r sample run previously and all of the
-CCD-exposures in NH pointing 908. For both methods there are outliers that heavily skew the mean and variance
-and thus we clip the times with a :math:`5 \sigma` iterative clipping.
+wall clock time comparable to that of the current Stack implementation of OPMb. In this section we present
+timing results both for a field with low density and with a high density. We count the time spent matching
+from the moment the ``doMatches`` is called till an array of matches (even if it is empty) is returned. We run
+through all CCDs in the CFHTLS in the g, r sample run previously and all of the CCD-exposures in NH pointing
+908. For both methods there are outliers that heavily skew the mean and variance and thus we clip the times
+with a :math:`5 \sigma` iterative clipping.
 
 The timing is both the mean and median suggest that PPMb is between 10% and 30% slower than OPMb for these
-datasets. However, it should be noted that PPMb is currently implemented in pure Python using ``numpy`` and
+datasets. However, it should be noted that PPMb is currently implemented in pure Python using NumPy and
 fast searchable data structures where possible. The main pattern creation loop of PPMb relies mostly on
-internal ``Python`` iteration which can be very slow. This is in comparison the ``stack`` implementation of
-OPMb which is coded in ``C++``. The extra steps of PPMb then do not seem to catastrophically increase the
+internal Python iteration which can be very slow. This is in comparison the Stack implementation of
+OPMb which is coded in C++. The extra steps of PPMb then do not seem to catastrophically increase the
 compute time to find astrometric matches.
 
 +---------------------------+---------------------+-----------------------+----------------------+
@@ -488,11 +494,12 @@ compute time to find astrometric matches.
 Summary
 =======
 
-In this tech-note, we presented a generalization to the OPMb algorithm from [tabur07]_ that allows
-for astrometric matching of catalog of detected sources into a catalog of reference objects in
-tractable time for a larger dynamic range of object densities. Such a generalization is important for the
-denser, Galactic pointings of the LSST dataset. We have shown that the PPMb algorithm to perform similarly
-both in terms of match success rate and WCS scatter to that of OPMb in data with a low object density and
-that it provides exceptional improvement in fields with a high reference object density. The timing of the
-two algorithms is surprisingly similar given that the current ``stack`` implementation of OPMb is written in
-a compiled language where as PPMb is currently written in pure Python. Given the performance comparison between the two algorithms and codes one could switch the default behavior of the LSST ``stack`` to PPMb without any notable drawbacks.
+In this tech-note, we presented a generalization to the OPMb algorithm from [tabur07]_ that allows for
+astrometric matching of catalog of detected sources into a catalog of reference objects in tractable time for
+a larger dynamic range of object densities. Such a generalization is important for the denser, galactic
+pointings of the LSST dataset. We have shown that the PPMb algorithm to perform similarly both in terms of
+match success rate and WCS scatter to that of OPMb in data with a low object density and that it provides
+exceptional improvement in fields with a high reference object density. The timing of the two algorithms is
+surprisingly similar given that the current Stack implementation of OPMb is written in a compiled language
+where as PPMb is currently written in pure Python. Given the performance comparison between the two algorithms
+and codes one could switch the default behavior of the LSST Stack to PPMb without any notable drawbacks.
