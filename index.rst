@@ -5,14 +5,14 @@ Pessimistic pattern matching for LSST
 Introduction
 ============
 
-The Large Synoptic Survey Telescope (LSST) “Stack” currently uses an implementation of [tabur07]_'s Optimistic
-Pattern Matcher B (OPMb) for blind astrometric matching to a reference catalog. This has been found to have a
-significant failure mode in very dense stellar fields with ~1000 references per CCD. This is caused by the
-algorithm being too greedy and finding false astrometric matches due to the matching space no longer being
-sparse at these densities. Rather than fine tune parameters for this algorithm to match successfully, we
-generalize the [tabur07]_ algorithm to work consistently over the large range of stellar densities expected in
-LSST. In this work we present Pessimistic Pattern Matcher B (PPMb), which operates over the full dynamic range
-of densities expected in LSST.
+The Large Synoptic Survey Telescope (LSST) “Stack” currently uses an implementation of
+:cite:`2007PASA...24..189T`'s Optimistic Pattern Matcher B (OPMb) for blind astrometric matching to a
+reference catalog. This has been found to have a significant failure mode in very dense stellar fields with
+~1000 references per CCD. This is caused by the algorithm being too greedy and finding false astrometric
+matches due to the matching space no longer being sparse at these densities. Rather than fine tune parameters
+for this algorithm to match successfully, we generalize the :cite:`2007PASA...24..189T` algorithm to work
+consistently over the large range of stellar densities expected in LSST. In this work we present Pessimistic
+Pattern Matcher B (PPMb), which operates over the full dynamic range of densities expected in LSST.
 
 Method overview
 ===============
@@ -21,14 +21,14 @@ In this section we describe the modifications and generalizations we make to OPM
 PPMb relies on matching :math:`N` point pinwheel patterns between a source catalog and a catalog of
 astrometric reference objects. This allows the matching to account for both shifts and rotations in the WCS
 with some allowance for distortion or scaling. Searching for such pinwheel shapes rather than triangles allows
-for efficient creation of, and searching for patterns "on the fly" [tabur07]_ rather than pre-computing all of
-the :math:`n (n - 1) (n - 2) / 6` unique triangles available in a reference catalog with :math:`n` elements.
-Instead the algorithms need only pre-compute the :math:`n (n - 1) / 2` unique pairs between reference objects.
-In [tabur07]_ OPMb is tested only up to hundreds of reference objects in a given observation. However, in the
-galactic plane, using the Gaia catalog as a reference, there can be of order 5000 reference objects in single
-CCD with a similar or greater number of detected sources. This causes challenges for the algorithm as
-implemented in the Stack and results in false positive matches causing poor astrometric solutions for these
-fields.
+for efficient creation of, and searching for patterns "on the fly" :cite:`2007PASA...24..189T` rather than
+pre-computing all of the :math:`n (n - 1) (n - 2) / 6` unique triangles available in a reference catalog with
+:math:`n` elements.  Instead the algorithms need only pre-compute the :math:`n (n - 1) / 2` unique pairs
+between reference objects.  In :cite:`2007PASA...24..189T` OPMb is tested only up to hundreds of reference
+objects in a given observation. However, in the galactic plane, using the Gaia catalog as a reference, there
+can be of order 5000 reference objects in single CCD with a similar or greater number of detected sources.
+This causes challenges for the algorithm as implemented in the Stack and results in false positive matches
+causing poor astrometric solutions for these fields.
 
 Primary Algorithmic Differences in PPMb
 ---------------------------------------
@@ -79,8 +79,8 @@ detected source catalog by ordering the objects in the catalog from brightest to
 is created by choosing the first first :math:`N` brightest objects, treating the brightest of these as the
 pinwheel center. If this pattern is not found in the astromtetric references then the brightest source is
 discarded and a new N point pinwheel is constructed starting with the second brightest object and so on until
-a requested number of patterns have been tested. In [tabur07]_ they suggest testing 50 patterns. Currently the
-LSST stack is set by default to test 150.
+a requested number of patterns have been tested. In :cite:`2007PASA...24..189T` they suggest testing 50
+patterns. Currently the LSST stack is set by default to test 150.
 
 Shift and rotation tests
 ^^^^^^^^^^^^^^^^^^^^^^^^
@@ -494,12 +494,17 @@ compute time to find astrometric matches.
 Summary
 =======
 
-In this tech-note, we presented a generalization to the OPMb algorithm from [tabur07]_ that allows for
-astrometric matching of catalog of detected sources into a catalog of reference objects in tractable time for
-a larger dynamic range of object densities. Such a generalization is important for the denser, galactic
-pointings of the LSST dataset. We have shown that the PPMb algorithm to perform similarly both in terms of
-match success rate and WCS scatter to that of OPMb in data with a low object density and that it provides
-exceptional improvement in fields with a high reference object density. The timing of the two algorithms is
-surprisingly similar given that the current Stack implementation of OPMb is written in a compiled language
-where as PPMb is currently written in pure Python. Given the performance comparison between the two algorithms
-and codes one could switch the default behavior of the LSST Stack to PPMb without any notable drawbacks.
+In this tech-note, we presented a generalization to the OPMb algorithm from :cite:`2007PASA...24..189T` that
+allows for astrometric matching of catalog of detected sources into a catalog of reference objects in
+tractable time for a larger dynamic range of object densities. Such a generalization is important for the
+denser, galactic pointings of the LSST dataset. We have shown that the PPMb algorithm to perform similarly
+both in terms of match success rate and WCS scatter to that of OPMb in data with a low object density and that
+it provides exceptional improvement in fields with a high reference object density. The timing of the two
+algorithms is surprisingly similar given that the current Stack implementation of OPMb is written in a
+compiled language where as PPMb is currently written in pure Python. Given the performance comparison between
+the two algorithms and codes one could switch the default behavior of the LSST Stack to PPMb without any
+notable drawbacks.
+
+.. bibliography:: lsst-texmf/texmf/bibtex/bib/refs_ads.bib
+   :encoding: utf-8
+   :style: lsst_aa
