@@ -83,7 +83,8 @@ detected source catalog by ordering the objects in the catalog from brightest to
 is created by choosing the first first :math:`N` brightest objects, treating the brightest of these as the
 pinwheel center. If this pattern is not found in the astromtetric references then the brightest source is
 discarded and a new :math:`N` point pinwheel is constructed starting with the second brightest object and so
-on until a requested number of patterns have been tested. Currently the LSST stack is set by default to test 150.
+on until a requested number of patterns have been tested. Currently the LSST stack is set by default to test
+150.
 
 Initialization
 --------------
@@ -135,7 +136,7 @@ center. We again sort reference pair candidates from the smallest absolute lengt
 Once we have the candidates for this source spoke we need only test that the opening angle between this spoke
 and the initial spoke are within tolerance to the angle formed by the candidate reference objects. We make the
 assumption here that the separations between any point in the source or reference objects are small enough
-that we can assume that they are within the plane of the sky.
+that we can assume simple 2D .
 
 .. note::
 
@@ -152,7 +153,7 @@ corresponding reference angle.
 We start by establishing the appropriate tolerance, :math:`\delta_{ang}`. Given the :math:`L`, the length of
 the source spoke being tested, we define:
 
-.. math:: \delta_{ang} = \frac{\delta}{L + \delta}
+.. math:: \delta_{ang} = \frac{\delta_{tol}}{L + \delta_{tol}}
 
 .. note::
 
@@ -163,11 +164,14 @@ the source spoke being tested, we define:
    :math:`\delta_{ang}`. Probably that's because I need more coffee, but could you add an extra sentence to
    clarify?
 
-This sets the opening angle tolerance assuming :math:`L \gg \delta` and also avoids the user having to specify
-an arbitrary tolerance when configuring the algorithm. We set a limit that this angle be less than
-:math:`0.0447` radians. This is set such that :math:`\cos(\delta_{ang}) \sim 1` to within 0.1%. This allows us
-to use the small angle sine and cosine expansions in the below. For cases where :math:`L \gg \delta` is not
-held, we instead set the opening angle tolerance to the value :math:`0.0447`.
+   [DOES THE BELOW IMPROVE THIS?]
+
+This sets tolerance allowed between the reference and source pattens when comparing opening angle between two
+spokes. This avoids the user having to specify an arbitrary tolerance when configuring the algorithm. We set a
+limit that this angle be less than :math:`0.0447` radians. This is set such that
+:math:`\cos(\delta_{ang}) \sim 1` to within 0.1%. This allows us to use the small angle sine and cosine
+expansions in the coming comparisons. The tolerance assumes that :math:`L \gg \delta_{tol}`. For cases where
+this is not held, we instead set the opening angle tolerance to the value :math:`0.0447`.
 
 To test the opening angle against the current tolerance for this spoke, we compute the normalized dot-product
 between our source spoke to the first source spoke and do the same with the candidate reference spokes. We
