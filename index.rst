@@ -76,7 +76,8 @@ Overall approach
 .. note::
 
    I think it'd be really helpful to include a version of Tabur's figure 3 that shows what the
-   pinwheel pattern looks like and establishes the notation.
+   pinwheel pattern looks like and establishes the notation. [I'll get to this in early next week. Any good
+   suggestions for plotting 3D data and labeling the different components?]
 
 Both OPMb and PPMb construct “pinwheel” shapes that are used to search within the reference objects from the
 detected source catalog by ordering the objects in the catalog from brightest to faintest flux. The pinwheel
@@ -123,15 +124,14 @@ Pattern construction
 
    I think it would be worth trimming some words here to make the core algorithm easier to follow. A case in
    point is the description of the ID lookup table — this is really an implementation optimization that nobody
-   who only wants to understand the algorithm need care about, I think.
+   who only wants to understand the algorithm need care about, I think. [Better?]
 
 Assuming the reference candidate for the two brightest objects in the source pinwheel satisfies all of the
-previous tests we begin to create the remaining spokes of our :math:`N` point pinwheel. We first pare down the
-number of reference pairs we need to search by using the ID lookup table we created previously to select only
-reference pairs that contain our candidate reference center. This speeds up the next stages of the search
-significantly. As with the first two points we test the length of the vector between the brightest source and
-third brightest source object against all of the reference pairs that contain the current candidate reference
-center. We again sort reference pair candidates from the smallest absolute length difference to the largest.
+previous tests we begin to create the remaining spokes of our :math:`N` point pinwheel beginning with the 3rd
+brightest and so on. We first pare down the number of reference pairs we need to search by using the ID lookup
+table we created previously to select only reference pairs that contain our candidate reference center. This
+speeds up the next stages of the search significantly. We search for the reference spokes that match within
+tolerance in the same way as the previous step.
 
 Once we have the candidates for this source spoke we need only test that the opening angle between this spoke
 and the initial spoke are within tolerance to the angle formed by the candidate reference objects. We make the
@@ -310,14 +310,14 @@ Softening tolerances
    I don't think we talked above about “allowing spokes to fail”. What does this mean? Is the point that
    under pattern construction you'll accept pinwheels even where not all of the spokes satisfy the
    :math:`\delta_{ang}` tests? If so, we should say so above. (If you did and I missed it... sorry) [I
-   mention it the "Primary differences" section.]
+   mention it the "Primary differences" section. Is that enough of should I add more?]
 
 PPMb has two main tolerances which can be softened as subsequent attempts are made to match the
 source data to the reference catalog. These are the maximum match distance :math:`\delta_{tol}` and the number
 of spokes which can fail to find a proper match before moving on to the next center point. We soften the match
 distance by doubling it each after the number of patterns requested has failed. We also independently add 1 to
 the number of spokes we attempt to test before exiting. We still require the same :math:`N` point complexity
-of the pattern but we can test a total number of :math:`N - M -2 ` spokes before exiting. These two softenings
+of the pattern but we can test a total number of :math:`N-M-2` spokes before exiting. These two softenings
 allow the algorithm enough flexibility to match to most stellar densities, cameras, and filters.
 
 #######
@@ -328,7 +328,7 @@ Datasets
 ========
 
 
-The pessimsitic matcher has been tested with the following datasets, selected to span a range of stellar
+The pessimistic matcher has been tested with the following datasets, selected to span a range of stellar
 densities and qualities of optical distortion model.
 
 .. note:: Not much. I think what you've said here is about right.
@@ -347,19 +347,20 @@ HiTS
    Blanco 4m telescope with the Dark Energy Camera (DECam). We use observations in the g and r bands and a
    total of 183 visits starting with visit id 0406285 for a total of 10,980 CCDs exposures.
 
-New Horizons
+Hyper-Suprime Cam
 
-   We use data that was observed on the Subaru telescope using Hyper-Suprime Cam (HSC) as part of efforts .
-   The data were observed as part of a path-finding for the `New Horizons`_ probe. There are a total of 39 visits contained in data labeled ``pointing 908`` we we use to test an extremely dense case for both
-   reference and source objects. This pointing starts with visit id 3350 and contains a total number of 4056
-   CCD exposures.
+   We use data that was observed on the Subaru telescope using Hyper-Suprime Cam (HSC). These observations
+   are within the galactic plane and thus have a extremely high density of reference and source objects given
+   their position on the sky and depth. There are a total of 39 visits contained in data labeled
+   ``pointing 908``. This pointing starts with visit id 3350 and contains a total number of 4056 CCD
+   exposures.
 
 .. note::
 
    As part of which efforts?
 
    I'd suggest not just referring to “New Horizons” in the heading above and below — it's actually HSC data
-   (as your description, but not the headings, make clear — so let's say that to avoid any ambiguity.
+   (as your description, but not the headings, make clear — so let's say that to avoid any ambiguity. [Okay]
 
 .. note::
 
@@ -384,10 +385,10 @@ Software configuration
    instead. Obviously, if it really was v14, that's fine.
 
    Also, what version of PPMb did you use? Was that really the version from v14 of the stack? I thought you
-   made changes since then.
+   made changes since then. [Don't know the exact weekly? It was late December for sure.]
 
-All the tests below were performed with release 14 of the LSST stack.  Note that this means the tests were
-performed *before* the transition to the new ``SkyWcs`` system (:jira:`DM-10765`)
+All the tests below were performed with a late December 2018 weekly of the LSST stack. Note that this means
+the tests were performed *before* the transition to the new ``SkyWcs`` system (:jira:`DM-10765`)
 
 Matching was performed within the regular match/fit cycle of ``AstrometryTask`` in the meas_astrom package.
 Comparisons were made by configuring the Stack to use the default (OPMb) matcher on the same data.
@@ -537,8 +538,8 @@ scatter of these matches — greater than :math:`1` arcsec. PPMb avoids these fa
 algorithm to find three patterns that agree on their shift and rotation before exiting and returning matches.
 
 +--------+--------------+-------------------------------+----------+
-|             HSC New Horizons (pointing=908), 4056 CCDs           |
-|                Median N Reference per CCD: 5442                  |
+|                  HSC (pointing=908), 4056 CCDs                   |
+|                  Median N Reference per CCD: 5442                |
 +--------+--------------+-------------------------------+----------+
 | Method | N Successful | Success Rate (scatter < 0.10) | N Failed |
 +========+==============+===============================+==========+
@@ -567,9 +568,9 @@ around the average solution.
 +--------------+-----------+-----------------------+-------------------------+------------------------+
 |              | N Matched | Mean Scatter [arcsec] | Median Scatter [arcsec] | Sigma Scatter [arcsec] |
 +==============+===========+=======================+=========================+========================+
-| NH: PPMb     |      4046 |         0.020         |          0.008          |         0.088          |
+| HSC: PPMb    |      4046 |         0.020         |          0.008          |         0.088          |
 +--------------+-----------+-----------------------+-------------------------+------------------------+
-| NH: OPMb     |      4056 |         1.183         |         1.2860          |         0.4452         |
+| HSC: OPMb    |      4056 |         1.183         |         1.2860          |         0.4452         |
 +--------------+-----------+-----------------------+-------------------------+------------------------+
 | HiTS: PPMb   |     10340 |         0.016         |          0.014          |         0.035          |
 +--------------+-----------+-----------------------+-------------------------+------------------------+
@@ -588,9 +589,9 @@ clipped around the mean to compare the results with outliers removed.
 +--------------+-----------+-----------------------+-------------------------+------------------------+
 |              | N Matched | Mean Scatter [arcsec] | Median Scatter [arcsec] | Sigma Scatter [arcsec] |
 +==============+===========+=======================+=========================+========================+
-| NH: PPMb     |      3850 |         0.008         |          0.008          |         0.001          |
+| HSC: PPMb    |      3850 |         0.008         |          0.008          |         0.001          |
 +--------------+-----------+-----------------------+-------------------------+------------------------+
-| NH: OPMb     |      4052 |         1.184         |          1.286          |         0.444          |
+| HSC: OPMb    |      4052 |         1.184         |          1.286          |         0.444          |
 +--------------+-----------+-----------------------+-------------------------+------------------------+
 | HiTS: PPMb   |     10126 |         0.015         |          0.014          |         0.005          |
 +--------------+-----------+-----------------------+-------------------------+------------------------+
@@ -617,9 +618,9 @@ both methods there are outliers that heavily skew the mean and variance and thus
 +--------------+---------------------+-----------------------+----------------------+
 |              | Mean time [seconds] | Median time [seconds] | Sigma time [seconds] |
 +==============+=====================+=======================+======================+
-| NH: PPMb     |       86.126        |        15.996         |      112.800         |
+| HSC: PPMb    |       86.126        |        15.996         |      112.800         |
 +--------------+---------------------+-----------------------+----------------------+
-| NH: OPMb     |       68.690        |        12.347         |      123.853         |
+| HSC: OPMb    |       68.690        |        12.347         |      123.853         |
 +--------------+---------------------+-----------------------+----------------------+
 | CFHTLS: PPMb |        0.616        |         0.566         |        0.239         |
 +--------------+---------------------+-----------------------+----------------------+
