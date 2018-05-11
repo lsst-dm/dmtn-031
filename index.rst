@@ -282,9 +282,18 @@ Automated matching tolerances
 
    Also, it would be helpful to move this to higher up the in the algorithm description — say where
    :math:`delta_{tol}` is coming from before you start using it. (Or, perhaps, just add a forward reference to
-   the text above to say that it'll be explained how to calculate it later.)
+   the text above to say that it'll be explained how to calculate it later.) [Better?]
 
-We automatically determine the starting match tolerance :math:`\delta_{tol}` based on the input catalogs.  To do this, we attempt to find the most similar :math:`N` point patterns based on their sorted :math:`N - 1` spoke lengths. We start by ordering the reference and source catalogs in decreasing flux and creating :math:`N` point patterns for a total of :math:`n - N` patterns where :math:`n` is the number of objects in the source or reference catalog. We compute the :math:`N - 1` lengths from brightest object in the pattern to the fainter ones. We then sort these distances and attempt to find minimal the two patterns out of the :math:`n - N` total that have the most similar spoke lengths. We then average the distance between over the :math:`N - 1` spokes. We do this both for the reference and source objects and pick the smaller of the two.  This allows us to set the initial tolerance at a threshold that reduces false positives in the pattern matching as a function of pattern density.
+We automatically determine the starting match tolerance :math:`\delta_{tol}` based on the input catalogs.  To
+do this, we attempt to find the most similar :math:`N` point patterns based on their sorted :math:`N - 1`
+spoke lengths. We start by ordering the one of catalogs in decreasing flux and creating :math:`N` point
+patterns for a total of :math:`n - N` patterns where :math:`n` is the number of objects in the source or
+reference catalog. We compute the :math:`N - 1` lengths from brightest object in the pattern to the fainter
+ones. We then sort these distances and attempt to find the two patterns out of the :math:`n - N` total that
+have the most similar spoke lengths. We then average the different distance between over the :math:`N - 1`
+spokes to compute the starting :math:`\delta_{tol}`. We do this both for the reference and source objects and
+pick the smaller of the two. This allows us to set the initial tolerance at a threshold that reduces false
+positives in the pattern matching as a function of pattern density.
 
 .. note::
 
@@ -304,7 +313,12 @@ Softening tolerances
    mention it the "Primary differences" section.]
 
 PPMb has two main tolerances which can be softened as subsequent attempts are made to match the
-source data to the reference catalog. These are the maximum match distance :math:`\delta_{tol}` and the number of spokes which can fail to find a proper match before moving on to the next center point. We soften the match distance by doubling it each after the number of patterns requested has failed. We also independently add 1 to number of spokes allowed to fail. These two softenings allow the algorithm enough flexibility to match to most stellar densities, cameras, and filters.
+source data to the reference catalog. These are the maximum match distance :math:`\delta_{tol}` and the number
+of spokes which can fail to find a proper match before moving on to the next center point. We soften the match
+distance by doubling it each after the number of patterns requested has failed. We also independently add 1 to
+the number of spokes we attempt to test before exiting. We still require the same :math:`N` point complexity
+of the pattern but we can test a total number of :math:`N - M -2 ` spokes before exiting. These two softenings
+allow the algorithm enough flexibility to match to most stellar densities, cameras, and filters.
 
 #######
 Testing
