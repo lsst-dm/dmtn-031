@@ -300,11 +300,11 @@ Softening tolerances
 
    I don't think we talked above about “allowing spokes to fail”. What does this mean? Is the point that
    under pattern construction you'll accept pinwheels even where not all of the spokes satisfy the
-   :math:`\delta_{ang}` tests? If so, we should say so above. (If you did and I missed it... sorry)
+   :math:`\delta_{ang}` tests? If so, we should say so above. (If you did and I missed it... sorry) [I
+   mention it the "Primary differences" section.]
 
 PPMb has two main tolerances which can be softened as subsequent attempts are made to match the
-source data to the reference catalog. These are the maximum match distance :math:`\delta` and the number of
-spokes which can fail to find a proper match before moving on to the next center point. We soften the match distance by doubling it each after the number of patterns requested has failed. We also independently add 1 to number of spokes allowed to fail. These two softenings allow the algorithm enough flexibility to match to most stellar densities, cameras, and filters.
+source data to the reference catalog. These are the maximum match distance :math:`\delta_{tol}` and the number of spokes which can fail to find a proper match before moving on to the next center point. We soften the match distance by doubling it each after the number of patterns requested has failed. We also independently add 1 to number of spokes allowed to fail. These two softenings allow the algorithm enough flexibility to match to most stellar densities, cameras, and filters.
 
 #######
 Testing
@@ -315,7 +315,7 @@ Datasets
 
 
 The pessimsitic matcher has been tested with the following datasets, selected to span a range of stellar
-densities and qualities of optical distortion model. [HOW MUCH DETAIL SHOULD I PUT INTO THESE DESCRIPTIONS?]
+densities and qualities of optical distortion model.
 
 .. note:: Not much. I think what you've said here is about right.
 
@@ -336,8 +336,7 @@ HiTS
 New Horizons
 
    We use data that was observed on the Subaru telescope using Hyper-Suprime Cam (HSC) as part of efforts .
-   The data were observed as part of a pathfinding effort for the `New Horizons`_ probe. There are a total of 39
-   visits contained in data labeled ``pointing 908`` we we use to test an extremely dense case for both
+   The data were observed as part of a path-finding for the `New Horizons`_ probe. There are a total of 39 visits contained in data labeled ``pointing 908`` we we use to test an extremely dense case for both
    reference and source objects. This pointing starts with visit id 3350 and contains a total number of 4056
    CCD exposures.
 
@@ -425,7 +424,7 @@ In the results tables below:
 
 - “N Successful” is the number of CCDs where a match has been found;
 - “N Failed” is the number of CCDs where a match was not found;
-- “Sucess rate” is the ration of “N Successful” to the total number of CCDs.
+- “Success rate” is the ration of “N Successful” to the total number of CCDs.
 
 CFHTLS results
 ^^^^^^^^^^^^^^
@@ -440,7 +439,7 @@ matched.
 
 .. note::
 
-   What is “median reference”? The median number of reference objects per CCD? Make that explicit.
+   What is “median reference”? The median number of reference objects per CCD? Make that explicit. [Added.]
 
 +--------+--------------+-------------------------------+----------+
 |           CFHTLS g, r-band (325 visits), 11700 CCDs              |
