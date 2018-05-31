@@ -44,8 +44,8 @@ differences:
   astrometric references in RA, dec and detected sources in x, y on the CCD to compute matches. PPMb avoids
   this by searching for matches directly on the unit sphere of RA, dec.
 
-- Can require that a specified number of successful pattern matches with the same shift and rotation on the sky
-  be found before returning an affirmative match. This is useful in fields with a very high number of
+- Can require that a specified number of successful pattern matches with the same shift and rotation on the
+  sky be found before returning an affirmative match. This is useful in fields with a very high number of
   astrometric reference objects where matching an :math:`N` point pattern at a realistic tolerance is fairly
   common. This allows PPMb to exclude false positive matches even for relatively loose tolerances.
 
@@ -73,26 +73,32 @@ Algorithm step-by-step
 Overall approach
 ----------------
 
-.. note::
+.. figure:: /_static/matcher_pattern_diagram.png
+    :name: fig-matcher-diagram
+    :alt: Matcher Pattern
 
-   I think it'd be really helpful to include a version of Tabur's figure 3 that shows what the
-   pinwheel pattern looks like and establishes the notation. [I'll get to this in early next week. Any good
-   suggestions for plotting 3D data and labeling the different components?]
+    Illustration of an example pinwheel pattern that is searched for in the reference objects. Points A, B, C,
+    and D are source points ordered from brightest to faintest. To find a match all lengths of the pinwheel
+    spokes (e.g. :math:`|v_B - v_A|`) and opening angles between spokes (e.g. the angle between vectors
+    :math:`v_B - v_A` and :math:`v_C - v_A`) must be within tolerances :math:`\delta_{tol}` and
+    :math:`\delta_{ang}` respectively. Shifts and rotations between the source and reference catalog are
+    tested against the unit vector :math:`v_A` and vector delta :math:`v_B - v_A` respectively.
 
 Both OPMb and PPMb construct “pinwheel” shapes that are used to search within the reference objects from the
-detected source catalog by ordering the objects in the catalog from brightest to faintest flux. The pinwheel
-is created by choosing the first first :math:`N` brightest objects, treating the brightest of these as the
-pinwheel center. If this pattern is not found in the astromtetric references then the brightest source is
-discarded and a new :math:`N` point pinwheel is constructed starting with the second brightest object and so
-on until a requested number of patterns have been tested. Currently the LSST stack is set by default to test
-150.
+detected source catalog by ordering the objects in the catalog from brightest to faintest flux. The image in
+:numref:`fig-matcher-diagram` shows this pinwheel in three dimensions. The pinwheel is created by choosing the
+first first :math:`N` brightest objects, treating the brightest of these as the pinwheel center (labeled
+:math:`A`). The fainter  If this pattern is not found in the astromtetric references then the brightest source
+is discarded and a new :math:`N` point pinwheel is constructed starting with the second brightest object and
+so on until a requested number of patterns have been tested. In the current LSST implementation, the default
+value of :math:`N` is 150.
 
 Initialization
 --------------
 
 The PPMb algorithm begins by creating the data structures needed to both search for individual pattern spokes
 based on their distance and to compare the opening angle between different spokes. For each reference pair we
-pre-compute the 3-vector delta (:math:`v_{\Delta}=v_A - v_B`), distance between the objects (:math:`|v_A -
+pre-compute the 3-vector delta (:math:`v_{\Delta}=v_B - v_A`), distance between the objects (:math:`|v_A -
 v_B|`), and catalog IDs of the objects that make up the pair. Each of these arrays is sorted by the distance.
 We also create a lookup table that enables quick access to all pairs featuring a given reference object.
 
@@ -120,32 +126,18 @@ than our set maximum we continue to the next candidate reference pair.
 Pattern construction
 --------------------
 
-.. note::
-
-   I think it would be worth trimming some words here to make the core algorithm easier to follow. A case in
-   point is the description of the ID lookup table — this is really an implementation optimization that nobody
-   who only wants to understand the algorithm need care about, I think. [Better?]
-
 Assuming the reference candidate for the two brightest objects in the source pinwheel satisfies all of the
-previous tests we begin to create the remaining spokes of our :math:`N` point pinwheel beginning with the 3rd
-brightest and so on. We first pare down the number of reference pairs we need to search by using the ID lookup
-table we created previously to select only reference pairs that contain our candidate reference center. This
-speeds up the next stages of the search significantly. We search for the reference spokes that match within
-tolerance in the same way as the previous step.
+previous tests we begin to create the remaining spokes of our :math:`N` point pinwheel, in order of decreasing
+brightness. We first pare down the number of reference pairs we need to search by using the ID lookup table to
+select only reference pairs that contain our candidate reference center. This speeds up the next stages of the
+search significantly. We search for the reference spokes that match within tolerance in the same way as the
+previous step.
 
 Once we have the candidates for this source spoke we need only test that the opening angle between this spoke
 and the initial spoke are within tolerance to the angle formed by the candidate reference objects. We make the
 assumption here that the separations between any point in the source or reference objects are small enough
 that we can assume simple 2D relations and that our dot and cross-products of difference vectors are within
 the plan of the sky.
-
-.. note::
-
-   I'm not sure I understand the above assumption in detail — can you clarify?
-
-   I *think* what you're saying is that we assume that everything is close enough together that we can just
-   use simple 2D trig to calculate these angles — is that the point? If so, perhaps it'd be simpler just to
-   say that explicitly, rather than to talk about “the plane of the sky”. [Better?]
 
 We employ two separate but related tests to check that the opening angle between source pattern spoke we are
 testing and the spoke created by the two brightest source objects in the pattern is within tolerance of the
@@ -156,23 +148,15 @@ the source spoke being tested, we define:
 
 .. math:: \delta_{ang} = \frac{\delta_{tol}}{L + \delta_{tol}}
 
-.. note::
-
-   What is :math:`\delta` in the above? (I assume it's the tolerance on :math:`L`, but you called that
-   :math:`\delta_{tol}` above).
-
-   It's not immediately obvious to me why this calculation gives you a useful tolerance on
-   :math:`\delta_{ang}`. Probably that's because I need more coffee, but could you add an extra sentence to
-   clarify?
-
-   [DOES THE BELOW IMPROVE THIS?]
-
 This sets tolerance allowed between the reference and source pattens when comparing opening angle between two
 spokes. This avoids the user having to specify an arbitrary tolerance when configuring the algorithm. We set a
-limit that this angle be less than :math:`0.0447` radians. This is set such that
-:math:`\cos(\delta_{ang}) \sim 1` to within 0.1%. This allows us to use the small angle sine and cosine
-expansions in the coming comparisons. The tolerance assumes that :math:`L \gg \delta_{tol}`. For cases where
-this is not held, we instead set the opening angle tolerance to the value :math:`0.0447`.
+limit that this angle be less than :math:`0.0447` radians. This is set such that :math:`\cos(\delta_{ang})
+\sim 1` to within 0.1%. This allows us to use the small angle sine and cosine expansions in the coming
+comparisons. The tolerance assumes that :math:`L \gg \delta_{tol}`. When this is not the case, we instead set
+the opening angle tolerance to the value :math:`0.0447`. One can see examples of the angle under test in
+:numref:`fig-matcher-diagram` as the opening angle between the vectors :math:`v_B - v_A` and :math:`v_C -
+v_A`: we ensure tha that the angles between these vectors as measured in the source and candidate reference
+patterns differ by no more than :math:`delta_{angle}`.
 
 To test the opening angle against the current tolerance for this spoke, we compute the normalized dot-product
 between our source spoke to the first source spoke and do the same with the candidate reference spokes. We
@@ -190,11 +174,8 @@ To avoid an expensive calculation of :math:`\sin\theta_{ref},` square the above,
 .. math:: (\cos\theta_{src} - \cos\theta_{ref})^2 < \delta_{ang}^2 (1 - \cos^2\theta_{ref})
 
 This test on the difference in cosines is insufficient to demonstrate that the two opening angles are the same
-within tolerance. The cosine comparison tests that the magnitudes of the opening angle, it does not allow one
-to test the chirality of the angle. There are also degeneracies in the comparison do the the periodic nature
-of the function.
-
-.. note:: Say why not? [Does this work?]
+within tolerance because it does not test chirality and because of degeneracies due to the periodic nature of
+the functions.
 
 To completely test that the angles are within tolerance we also need to test the sine of the angles. Here, we
 compute the normalized cross-product between the two source spokes and likewise the reference spokes. This
@@ -219,13 +200,8 @@ Once we have constructed the complete pinwheel pattern of the requested complexi
 rotation implied by the first spoke in each of the source and reference pinwheels can align the reference and
 source patterns on top of each other such that the distances between the source and reference points that make
 up the pinwheels are all within the matching tolerance. If this condition is satisfied we then fit a rotation
-matrix using the :math:`N` matched points that transforms source objects into the reference frame. We allow
-the matrix to be non-unitary allowing the final verify matching to account for some distortion. This matrix
-will be used to transform the source objects into the reference frame before running final verify.
-
-.. note::
-
-    Say something more about the non-unitary matrix? How slight is “slightly”? [Better?]
+matrix using the :math:`N` matched points that transforms source objects into the reference frame. To permit
+for some distortion in the final verification process, this matrix is allowed to be non-unitary.
 
 Pessimism of the algorithm
 ---------------------------
@@ -238,18 +214,12 @@ A series of test points are generated by computing the mean 3-vector of the sour
 points by replacing each Cartesian coordinate in turn first by the minimum and then the maximum of the sample
 (thus :math:`[x_{min}, \overline{y}, \overline{z}]`, :math:`[y_{max}, \overline{y}, \overline{z}]`, etc).
 
-.. note::
-
-    I *think* I interpreted your text correctly and reworded it appropriately here, but please check!
-    [Looks Good]
-
 Upon finding a candidate reference pattern we rotate the test points from the source into the reference frame
-using the rotation that was fit in intermediate verify. We then store these rotated test points and continue
-our search the next pattern starting with another :math:`N` point source pinwheel pattern and so on. Once we
-find more patterns that pass intermediate verification, we rotate the 6 points again and compare their rotated
-positions to previous shifts and rotations that have been matched. If a user-specified number of previous
-shifts and rotations move the test points to within the :math:`\delta_{tol}` length tolerance then we can
-proceed to the final verify step.
+using the rotation produced by intermediate verification. We then store these rotated test points and continue
+our search, starting another :math:`N` point source pinwheel pattern. Once we find more patterns that pass
+intermediate verification, we rotate the 6 points again and compare their rotated positions to previous shifts
+and rotations that have been matched. If a user-specified number of previous shifts and rotations move the
+test points to within the :math:`\delta_{tol}` length tolerance then we can proceed to the final verify step.
 
 In tests we have shown that finding three such matches reduces the false positive rate for dense stellar
 fields significantly even for large values of :math:`\delta`. We also set a threshold for using this
@@ -260,32 +230,21 @@ to have the desired number of matching patterns.
 Final verification
 ------------------
 
-.. note:: Worth a citation for k-d tree? [Added a link to scipy which is what I use.]
-
 Finally, after finding a suitable shift and rotation matrix we apply it and its inverse to the source object
 and reference object positions respectively. We construct searchable k-d trees using the spatial algorithm in
-`scipy`_ This is done for both the source and reference objects in their respective frames for fast
+`SciPy`_. This is done for both the source and reference objects in their respective frames for fast
 nearest-neighbor look up. After matching the rotated source and rotated reference objects with the k-d tree we
 construct a “handshake” match. This matching refers to having both the sources matched into the reference
 frame and the reference matched into the source frame agree on the match in order to consider it valid. This
 cuts down on false positives in dense fields. After trimming the matched source and references to the maximum
-match distance :math:`\delta`, we test that the number of remaining matches is greater than the minimum
-specified. Once this criteria is statisfied we return the matched source and reference catalog.
-
+match distance :math:`\delta_{tol}`, we test that the number of remaining matches is greater than the minimum
+specified. Once this criteria is satisfied we return the matched source and reference catalog.
 
 Automated matching tolerances
 =============================
 
-.. note::
-
-   This is referring to automatically determining :math:`\delta_{tol}`, right? Useful to say that explicitly.
-
-   Also, it would be helpful to move this to higher up the in the algorithm description — say where
-   :math:`delta_{tol}` is coming from before you start using it. (Or, perhaps, just add a forward reference to
-   the text above to say that it'll be explained how to calculate it later.) [Better?]
-
-We automatically determine the starting match tolerance :math:`\delta_{tol}` based on the input catalogs.  To
-do this, we attempt to find the most similar :math:`N` point patterns based on their sorted :math:`N - 1`
+We automatically determine the starting match tolerance (:math:`\delta_{tol}`) based on the input catalogs.
+To do this, we attempt to find the most similar :math:`N` point patterns based on their sorted :math:`N - 1`
 spoke lengths. We start by ordering the one of catalogs in decreasing flux and creating :math:`N` point
 patterns for a total of :math:`n - N` patterns where :math:`n` is the number of objects in the source or
 reference catalog. We compute the :math:`N - 1` lengths from brightest object in the pattern to the fainter
@@ -300,7 +259,9 @@ positives in the pattern matching as a function of pattern density.
    I'm struggling to understand the description above. I thought you were comparing reference and source
    catalogues, but then you say “we do this for both reference and source objects and pick the smaller of the
    two”, and I don't understand how that fits in. Could you try rewording to clarify what's happening? If it
-   helps, come and diagram it on my whiteboard and I'll turn it into text.
+   helps, come and diagram it on my white-board and I'll turn it into text.
+
+   ... I'm still not getting this. 😞
 
 Softening tolerances
 ====================
@@ -312,13 +273,19 @@ Softening tolerances
    :math:`\delta_{ang}` tests? If so, we should say so above. (If you did and I missed it... sorry) [I
    mention it the "Primary differences" section. Is that enough of should I add more?]
 
+   ... I think it's probably worth a sentence in the actual algorithm description, rather than just the
+   primary differences
+
+   Also, I don't think that “doubling it each after the number of patterns requested has failed” is really
+   English. 😀 [FIXED]
+
 PPMb has two main tolerances which can be softened as subsequent attempts are made to match the
 source data to the reference catalog. These are the maximum match distance :math:`\delta_{tol}` and the number
 of spokes which can fail to find a proper match before moving on to the next center point. We soften the match
-distance by doubling it each after the number of patterns requested has failed. We also independently add 1 to
-the number of spokes we attempt to test before exiting. We still require the same :math:`N` point complexity
-of the pattern but we can test a total number of :math:`N-M-2` spokes before exiting. These two softenings
-allow the algorithm enough flexibility to match to most stellar densities, cameras, and filters.
+distance by doubling it after the number of source patterns requested has failed. We also independently add 1
+to the number of spokes we attempt to test before exiting. We still require the same :math:`N` point
+complexity of the pattern but we can test a total number of :math:`N-M-2` spokes before exiting. These two
+softenings allow the algorithm enough flexibility to match to most stellar densities, cameras, and filters.
 
 #######
 Testing
@@ -330,8 +297,6 @@ Datasets
 
 The pessimistic matcher has been tested with the following datasets, selected to span a range of stellar
 densities and qualities of optical distortion model.
-
-.. note:: Not much. I think what you've said here is about right.
 
 CFHTLS
 
@@ -347,30 +312,16 @@ HiTS
    Blanco 4m telescope with the Dark Energy Camera (DECam). We use observations in the g and r bands and a
    total of 183 visits starting with visit id 0406285 for a total of 10,980 CCDs exposures.
 
-Hyper-Suprime Cam
+Hyper Suprime-Cam
 
-   We use data that was observed on the Subaru telescope using Hyper-Suprime Cam (HSC). These observations
+   We use data that was observed on the Subaru telescope using Hyper Suprime-Cam (HSC). These observations
    are within the galactic plane and thus have a extremely high density of reference and source objects given
    their position on the sky and depth. There are a total of 39 visits contained in data labeled
    ``pointing 908``. This pointing starts with visit id 3350 and contains a total number of 4056 CCD
    exposures.
 
-.. note::
-
-   As part of which efforts?
-
-   I'd suggest not just referring to “New Horizons” in the heading above and below — it's actually HSC data
-   (as your description, but not the headings, make clear — so let's say that to avoid any ambiguity. [Okay]
-
-.. note::
-
-   As well the brief descriptions above, it would be useful to describe where to get this data. Is it on the
-   Verification Cluster? If not, is it freely available elsewhere?
-
 For each of these data we use the same set of reference objects derived from the Gaia DR1
 :cite:`2016A&A...595A...2G` dataset.
-
-.. note:: How were the reference objects chosen? Is the catalog available somewhere?
 
 .. _Canada-France-Hawaii Telescope Legacy Survey: http://www.cfht.hawaii.edu/Science/CFHTLS/
 .. _New Horizons: http://www.nasa.gov/mission_pages/newhorizons/main/index.html
@@ -379,14 +330,6 @@ For each of these data we use the same set of reference objects derived from the
 Software configuration
 ======================
 
-.. note::
-
-   Did you really use stack v14? That's pretty old. If it was actually a weekly, let's say that
-   instead. Obviously, if it really was v14, that's fine.
-
-   Also, what version of PPMb did you use? Was that really the version from v14 of the stack? I thought you
-   made changes since then. [Don't know the exact weekly? It was late December for sure.]
-
 All the tests below were performed with a late December 2018 weekly of the LSST stack. Note that this means
 the tests were performed *before* the transition to the new ``SkyWcs`` system (:jira:`DM-10765`)
 
@@ -394,20 +337,10 @@ Matching was performed within the regular match/fit cycle of ``AstrometryTask`` 
 Comparisons were made by configuring the Stack to use the default (OPMb) matcher on the same data.
 
 Both matchers were run with their default configurations, with the exception that we modified the match
-tolerance :math:`\delta` for the HSC timing test to give a fairer comparison with PPMb. OPMb's start tolerance
-is :math:`3` arcseconds which causes the code to exit with a false positive match almost instantaneously. We
-instead set the tolerance to :math:`1` arcseconds for this test and dataset to more fairly compare the run
-time with similar starting tolerances between the codes.
-
-.. note::
-
-   I added the comment about default configuration. Is it true? If not, please specify what configuration was
-   used!
-
-   Also, I couldn't parse your text “PPMb retains the same configuration settings throughout while we modify
-   the match tolerance δ for the HSC timing test to give a fairer comparison with PPMb” — I'm not sure if
-   you're modifying the configuration of PPMb or OPMb. Please reword the above a bit to clarify exactly what
-   happened!
+tolerance :math:`\delta_{tol}` for the HSC timing test to give a fairer comparison with PPMb. OPMb's default
+start tolerance is :math:`3` arcseconds which causes the code to exit with a false positive match almost
+instantaneously. We instead set the tolerance to :math:`1` arcseconds for this test and dataset to more
+helpfully compare the run time with similar starting tolerances between the codes.
 
 Results
 =======
@@ -416,7 +349,7 @@ We present three complementary sets of results from testing:
 
 #. The fraction of CCD exposures from each dataset that found a good astrometric solution;
 #. Match quality, as quantified by the RMS scatter on the astromtric solution;
-#. Run-time perforamnce.
+#. Run-time performance.
 
 Fraction of successful matches
 ------------------------------
@@ -427,13 +360,6 @@ upper-limit on what we consider a successful match/fit cycle based on the expect
 solution after a successful match. This are 0.02 for New Horizons and 0.10 for both CFHTLS and HitS. These
 numbers were derived from confirming successful matches by eye and noting the RMS scatter in arcseconds of the
 final astrometric solution.
-
-.. note::
-
-   So what did you regard as a “successful” RMS scatter?
-
-   Oh, is this the 0.10 number in the column headings below? If so, move it out of there and make it explicit
-   above. [Added.]
 
 In the results tables below:
 
@@ -451,10 +377,6 @@ are available to match given signal to noise and other quality cuts on the sourc
 For the largest sample of CCDs we attempted to solve, observed primarily in the g and r bands, the
 performance of the two matchers is quite similar, differing only by roughly :math:`1%` in the fraction of CCDs
 matched.
-
-.. note::
-
-   What is “median reference”? The median number of reference objects per CCD? Make that explicit. [Added.]
 
 +--------+--------------+-------------------------------+----------+
 |           CFHTLS g, r-band (325 visits), 11700 CCDs              |
@@ -521,7 +443,7 @@ PPMb.
 | PPMb   |        10213 |                         0.930 |      640 |
 +--------+--------------+-------------------------------+----------+
 | OPMb   |         8979 |                         0.818 |      1724|
-+-------+--------------+-------------------------------+-----------+
++--------+--------------+-------------------------------+----------+
 
 New Horizons results
 ^^^^^^^^^^^^^^^^^^^^
