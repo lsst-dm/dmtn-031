@@ -240,44 +240,8 @@ cuts down on false positives in dense fields. After trimming the matched source 
 match distance :math:`\delta_{tol}`, we test that the number of remaining matches is greater than the minimum
 specified. Once this criteria is satisfied we return the matched source and reference catalog.
 
-Automated matching tolerances
-=============================
-
-We automatically determine the starting match tolerance (:math:`\delta_{tol}`) based on the input catalogs.
-To do this, we attempt to find the most similar :math:`N` point patterns based on their sorted :math:`N - 1`
-spoke lengths. We start by ordering the one of catalogs in decreasing flux and creating :math:`N` point
-patterns for a total of :math:`n - N` patterns where :math:`n` is the number of objects in the source or
-reference catalog. We compute the :math:`N - 1` lengths from brightest object in the pattern to the fainter
-ones. We then sort these distances and attempt to find the two patterns out of the :math:`n - N` total that
-have the most similar spoke lengths. We then average the different distance between over the :math:`N - 1`
-spokes to compute the starting :math:`\delta_{tol}`. We do this both for the reference and source objects and
-pick the smaller of the two. This allows us to set the initial tolerance at a threshold that reduces false
-positives in the pattern matching as a function of pattern density.
-
-.. note::
-
-   I'm struggling to understand the description above. I thought you were comparing reference and source
-   catalogues, but then you say “we do this for both reference and source objects and pick the smaller of the
-   two”, and I don't understand how that fits in. Could you try rewording to clarify what's happening? If it
-   helps, come and diagram it on my white-board and I'll turn it into text.
-
-   ... I'm still not getting this. 😞
-
 Softening tolerances
-====================
-
-.. note::
-
-   I don't think we talked above about “allowing spokes to fail”. What does this mean? Is the point that
-   under pattern construction you'll accept pinwheels even where not all of the spokes satisfy the
-   :math:`\delta_{ang}` tests? If so, we should say so above. (If you did and I missed it... sorry) [I
-   mention it the "Primary differences" section. Is that enough of should I add more?]
-
-   ... I think it's probably worth a sentence in the actual algorithm description, rather than just the
-   primary differences
-
-   Also, I don't think that “doubling it each after the number of patterns requested has failed” is really
-   English. 😀 [FIXED]
+--------------------
 
 PPMb has two main tolerances which can be softened as subsequent attempts are made to match the
 source data to the reference catalog. These are the maximum match distance :math:`\delta_{tol}` and the number
@@ -286,6 +250,20 @@ distance by doubling it after the number of source patterns requested has failed
 to the number of spokes we attempt to test before exiting. We still require the same :math:`N` point
 complexity of the pattern but we can test a total number of :math:`N-M-2` spokes before exiting. These two
 softenings allow the algorithm enough flexibility to match to most stellar densities, cameras, and filters.
+
+Automated matching tolerances
+=============================
+
+We automatically determine the starting match tolerance (:math:`\delta_{tol}`) in such a way that all patterns
+within each input catalog — source and reference — are clearly distinguished from each other. For each catalog
+independently, we find the two most similar :math:`N` point patterns based on their spoke lengths. To do this,
+we sort the catalog by decreasing flux and create :math:`N` point patterns in the same way as the main
+algorithm, for a total of :math:`n-N` patterns where :math:`n` is the number of objects in catalog.  We
+compute the lengths of each of the :math:`N-1` spokes in the pattern, and find the two patterns with the most
+similar spoke lengths. We then take the average spoke length difference between the two patterns. Having
+performed this analysis for both catalogs, we choose the smaller of the two to serve as :math:`\delta_{tol}`.
+By doing this, we limit the number of false postives caused by high object densities where patterns can be
+very similar due to chance alone.
 
 #######
 Testing
@@ -300,7 +278,7 @@ densities and qualities of optical distortion model.
 
 CFHTLS
 
-   We use data from the `Canada-France-Hawaii Telescope Legacy Survey`_ (CFHTLS) [CFHTLS CITE] observed at the
+   We use data from the `Canada-France-Hawaii Telescope Legacy Survey`_ (CFHTLS) observed at the
    Canada-France-Hawaii Telescope with MegaCam. The dat come from the W3 pointing of the Wide portion of the
    CFHTLS survey. We use a total number of 325 visits (start 704382) in the g and r bands, and 56 visits each
    in u (850245), i (705243), and z(850255) filters. This give a total of 17,700 CCD exposures to blindly
