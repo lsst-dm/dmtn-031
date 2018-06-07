@@ -13,7 +13,7 @@ serial_number: '031'
 doc_id: 'DMTN-031'
 
 # Title of the document, without the series/serial designation
-doc_title: 'Assessing the preformance of the astrometry matcher'
+doc_title: 'Pessimistic Pattern Matching for LSST'
 
 # Author names, ordered as a list. Each author name should be formatted as 'First Last'
 authors:
@@ -34,10 +34,10 @@ authors:
 # doi: 10.5281/zenodo.#####
 
 # Copyright statement
-copyright: '2016, AURA/LSST'
+copyright: '2016–2018, AURA/LSST'
 
 # Description. A short, 1-2 sentence statemement used by document indices.
-description: 'The current implimentation of the object matcher  for astrometry has be found to not be exceptionly robust and fails to find matchs on serveral current datasets. This document will summarize those failures and suggest improvements that can be made to the current matching algorithm.'
+description: 'The current reference catalog matcher used by LSST for astrometry has be found to not be adequately robust and fails to find matches on serveral current datasets. This document describes a potential replacement algorithm, and compares its performance with the current implementation.'
 
 # Abstract, if available
 # abstract: >
@@ -55,3 +55,5 @@ docushare_url: ''
 
 # GitHub repo URL
 github_url: 'https://github.com/lsst-dm/dmtn-031'
+
+exclude_patterns: ['lsst-texmf', '_build', 'README.rst']
