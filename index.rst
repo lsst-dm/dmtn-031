@@ -4,7 +4,7 @@ Pessimistic Pattern Matching for LSST
 
 .. abstract::
 
-   The current reference catalog matcher used by LSST for astrometry has be found to not be adequately robust and fails to find matches on serveral current datasets. This document describes a potential replacement algorithm, and compares its performance with the current implementation.
+   The current reference catalog matcher used by LSST for astrometry has been found to not be adequately robust and fails to find matches on several current datasets. This document describes a potential replacement algorithm, and compares its performance with the current implementation.
 
 ############
 Introduction
@@ -96,7 +96,7 @@ Both OPMb and PPMb construct “pinwheel” shapes that are used to search withi
 detected source catalog by ordering the objects in the catalog from brightest to faintest flux. The image in
 :numref:`fig-matcher-diagram` shows this pinwheel in three dimensions. The pinwheel is created by choosing the
 first first :math:`N` brightest objects, treating the brightest of these as the pinwheel center (labeled
-:math:`A`). The fainter  If this pattern is not found in the astromtetric references then the brightest source
+:math:`A`). The fainter  If this pattern is not found in the astrometric references then the brightest source
 is discarded and a new :math:`N` point pinwheel is constructed starting with the second brightest object and
 so on until a requested number of patterns have been tested. In the current LSST implementation, the default
 value of :math:`N` is 150.
@@ -263,7 +263,7 @@ Automated matching tolerances
 =============================
 
 We automatically determine the starting match tolerance (:math:`\delta_{tol}`) in such a way that all patterns
-within each input catalog — source and reference — are clearly distinguished from each other. For each catalog
+within each input catalog — source and reference — are clearly distinguished from each other. For each catalog
 independently, we find the two most similar :math:`N` point patterns based on their spoke lengths. To do this,
 we sort the catalog by decreasing flux and create :math:`N` point patterns in the same way as the main
 algorithm, for a total of :math:`n-N` patterns where :math:`n` is the number of objects in catalog.  We
@@ -311,7 +311,7 @@ For each of these data we use the same set of reference objects derived from the
 
 .. _Canada-France-Hawaii Telescope Legacy Survey: http://www.cfht.hawaii.edu/Science/CFHTLS/
 .. _New Horizons: http://www.nasa.gov/mission_pages/newhorizons/main/index.html
-.. _scipy: http://www.scipy.org
+.. _SciPy: http://www.scipy.org
 
 Software configuration
 ======================
@@ -319,7 +319,7 @@ Software configuration
 All the tests below were performed with a late December 2018 weekly of the LSST stack. Note that this means
 the tests were performed *before* the transition to the new ``SkyWcs`` system (:jira:`DM-10765`)
 
-Matching was performed within the regular match/fit cycle of ``AstrometryTask`` in the meas_astrom package.
+Matching was performed within the regular match/fit cycle of ``AstrometryTask`` in the ``meas_astrom`` package.
 Comparisons were made by configuring the Stack to use the default (OPMb) matcher on the same data.
 
 Both matchers were run with their default configurations, with the exception that we modified the match
@@ -334,7 +334,7 @@ Results
 We present three complementary sets of results from testing:
 
 #. The fraction of CCD exposures from each dataset that found a good astrometric solution;
-#. Match quality, as quantified by the RMS scatter on the astromtric solution;
+#. Match quality, as quantified by the RMS scatter on the astrometric solution;
 #. Run-time performance.
 
 Fraction of successful matches
@@ -541,7 +541,7 @@ main pattern creation loop of PPMb relies mostly on internal Python iteration wh
 in comparison the Stack implementation of OPMb which is coded in C++. The extra steps of PPMb then do not
 catastrophically increase the compute time to find astrometric matches.
 
-.. _NumPy: http://www.numpy.org/
+.. _NumPy: https://www.numpy.org/
 
 #######
 Summary
