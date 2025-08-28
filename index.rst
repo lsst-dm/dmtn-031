@@ -2,9 +2,16 @@
 Pessimistic Pattern Matching for LSST
 #####################################
 
+.. image:: https://img.shields.io/badge/DOI-10.71929/rubin/2586578-blue.svg
+  :target: https://doi.org/10.71929/rubin/2586578
+  :alt: DOI: 10.71929/rubin/2586578
+  :height: 16
+
 .. abstract::
 
    The current reference catalog matcher used by LSST for astrometry has been found to not be adequately robust and fails to find matches on several current datasets. This document describes a potential replacement algorithm, and compares its performance with the current implementation.
+
+**DOI**: `10.71929/rubin/2586578 <https://doi.org/10.71929/rubin/2586578>`_
 
 ############
 Introduction
