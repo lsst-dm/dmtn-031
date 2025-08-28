@@ -10,12 +10,12 @@ Pessimistic Pattern Matching for LSST
 Introduction
 ############
 
-The Large Synoptic Survey Telescope (LSST) “Stack” currently uses an implementation of
-:cite:`2007PASA...24..189T`'s Optimistic Pattern Matcher B (OPMb) for blind astrometric matching to a
+The Large Synoptic Survey Telescope (LSST) “Stack” :cite:`PSTN-019` currently uses an implementation of
+:cite:t:`2007PASA...24..189T`'s Optimistic Pattern Matcher B (OPMb) for blind astrometric matching to a
 reference catalog. This has been found to have a significant failure mode in very dense stellar fields with
 ~1000 references per CCD. This is caused by the algorithm being too greedy and finding false astrometric
 matches due to the matching space no longer being sparse at these densities. Rather than fine tune parameters
-for this algorithm to match successfully, we generalize the :cite:`2007PASA...24..189T` algorithm to work
+for this algorithm to match successfully, we generalize the :cite:t:`2007PASA...24..189T` algorithm to work
 consistently over the large range of stellar densities expected in LSST. In this work we present Pessimistic
 Pattern Matcher B (PPMb), which operates over the full dynamic range of densities expected in LSST.
 
@@ -35,7 +35,7 @@ pre-computing all of the :math:`n (n - 1) (n - 2) / 6` unique triangles availabl
 :math:`n` elements.  Instead the algorithms need only pre-compute the :math:`n (n - 1) / 2` unique pairs
 between reference objects.
 
-In :cite:`2007PASA...24..189T` OPMb is tested only up to hundreds of reference objects in a given observation.
+In :cite:t:`2007PASA...24..189T` OPMb is tested only up to hundreds of reference objects in a given observation.
 However, in the galactic plane, using the Gaia catalog as a reference, there can be of order 5000 reference
 objects in single CCD with a similar or greater number of detected sources. Experience with our current OPMb
 implementation indicates that this results in an excessive number of false positive matches and, ultimately,
@@ -294,7 +294,7 @@ CFHTLS
 
 HiTS
 
-   We use data from the High Cadence Transient Survey (HiTS, :cite:`2016ApJ...832..155F`) observed on the
+   We use data from the High Cadence Transient Survey (HiTS, :cite:t:`2016ApJ...832..155F`) observed on the
    Blanco 4m telescope with the Dark Energy Camera (DECam). We use observations in the g and r bands and a
    total of 183 visits starting with visit id 0406285 for a total of 10,980 CCDs exposures.
 
@@ -548,7 +548,7 @@ Summary
 #######
 
 In this technical note, we have described a generalization to the OPMb algorithm from
-:cite:`2007PASA...24..189T` that allows for astrometric matching of catalog of detected sources into a catalog
+:cite:t:`2007PASA...24..189T` that allows for astrometric matching of catalog of detected sources into a catalog
 of reference objects in tractable time for a larger dynamic range of object densities. Such a generalization
 is important for the denser galactic pointings of the LSST survey. We have shown that the PPMb algorithm to
 perform similarly both in terms of match success rate and WCS scatter to that of OPMb in data with a low
