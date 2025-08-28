@@ -1,3 +1,11 @@
+#####################################
+Pessimistic Pattern Matching for LSST
+#####################################
+
+.. abstract::
+
+   The current reference catalog matcher used by LSST for astrometry has be found to not be adequately robust and fails to find matches on serveral current datasets. This document describes a potential replacement algorithm, and compares its performance with the current implementation.
+
 ############
 Introduction
 ############
@@ -550,6 +558,4 @@ implementation of OPMb is written in a compiled language where as PPMb is pure P
 comparison between the two algorithms and codes, we conclude that one could switch the default behavior of the
 LSST Stack to PPMb without any notable drawbacks.
 
-.. bibliography:: lsst-texmf/texmf/bibtex/bib/refs_ads.bib
-   :encoding: utf-8
-   :style: lsst_aa
+.. bibliography::
