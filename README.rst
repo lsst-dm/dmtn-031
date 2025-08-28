@@ -1,66 +1,50 @@
 .. image:: https://img.shields.io/badge/dmtn--031-lsst.io-brightgreen.svg
-   :target: https://dmtn-031.lsst.io
-.. image:: https://travis-ci.org/lsst-dm/dmtn-031.svg
-   :target: https://travis-ci.org/lsst-dm/dmtn-031
-..
-  Uncomment this section and modify the DOI strings to include a Zenodo DOI badge in the README
-  .. image:: https://zenodo.org/badge/doi/10.5281/zenodo.#####.svg
-     :target: http://dx.doi.org/10.5281/zenodo.#####
+   :target: https://dmtn-031.lsst.io/
+.. image:: https://github.com/lsst-dm/dmtn-031/workflows/CI/badge.svg
+   :target: https://github.com/lsst-dm/dmtn-031/actions/
 
-############################################################
-DMTN-031 Assessing the preformance of the astrometry matcher
-############################################################
+#####################################
+Pessimistic Pattern Matching for LSST
+#####################################
 
-The current implimentation of the object matcher  for astrometry has be found to not be exceptionly robust and fails to find matchs on serveral current datasets. This document will summarize those failures and suggest improvements that can be made to the current matching algorithm.
+DMTN-031
+========
 
-View this technote at https://dmtn-031.lsst.io or see a preview of the current version in `this repo`_.
+The current reference catalog matcher used by LSST for astrometry has be found to not be adequately robust and fails to find matches on serveral current datasets. This document describes a potential replacement algorithm, and compares its performance with the current implementation.
 
+**Links:**
 
+- Publication URL: https://dmtn-031.lsst.io/
+- Alternative editions: https://dmtn-031.lsst.io/v
+- GitHub repository: https://github.com/lsst-dm/dmtn-031
+- Build system: https://github.com/lsst-dm/dmtn-031/actions/
 
 Build this technical note
 =========================
 
-You can clone this repository and build the technote locally with `Sphinx`_
+You can clone this repository and build the technote locally if your system has Python 3.11 or later:
 
 .. code-block:: bash
 
    git clone https://github.com/lsst-dm/dmtn-031
    cd dmtn-031
-   pip install -r requirements.txt
+   make init
    make html
 
-.. note::
-
-   In a Conda_ environment, ``pip install -r requirements.txt`` doesn't work as expected.
-   Instead, ``pip`` install the packages listed in ``requirements.txt`` individually.
+Repeat the ``make html`` command to rebuild the technote after making changes.
+If you need to delete any intermediate files for a clean build, run ``make clean``.
 
 The built technote is located at ``_build/html/index.html``.
+
+Publishing changes to the web
+=============================
+
+This technote is published to https://dmtn-031.lsst.io/ whenever you push changes to the ``main`` branch on GitHub.
+When you push changes to a another branch, a preview of the technote is published to https://dmtn-031.lsst.io/v.
 
 Editing this technical note
 ===========================
 
-You can edit the ``index.rst`` file, which is a reStructuredText document.
-The `DM reStructuredText Style Guide`_ is a good resource for how we write reStructuredText.
-
-Remember that images and other types of assets should be stored in the ``_static/`` directory of this repository.
-See ``_static/README.rst`` for more information.
-
-The published technote at https://dmtn-031.lsst.io will be automatically rebuilt whenever you push your changes to the ``master`` branch on `GitHub <https://github.com/lsst-dm/dmtn-031>`_.
-
-Updating metadata
-=================
-
-This technote's metadata is maintained in ``metadata.yaml``.
-In this metadata you can edit the technote's title, authors, publication date, etc..
-``metadata.yaml`` is self-documenting with inline comments.
-
-****
-
-Copyright 2016 AURA/LSST
-
-This work is licensed under the Creative Commons Attribution 4.0 International License. To view a copy of this license, visit http://creativecommons.org/licenses/by/4.0/.
-
-.. _Sphinx: http://sphinx-doc.org
-.. _DM reStructuredText Style Guide: https://developer.lsst.io/docs/rst_styleguide.html
-.. _this repo: ./index.rst
-.. _Conda: http://conda.pydata.org/docs/
+The main content of this technote is in ``index.rst`` (a reStructuredText file).
+Metadata and configuration is in the ``technote.toml`` file.
+For guidance on creating content and information about specifying metadata and configuration, see the Documenteer documentation: https://documenteer.lsst.io/technotes.

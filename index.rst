@@ -1,13 +1,28 @@
+#####################################
+Pessimistic Pattern Matching for LSST
+#####################################
+
+.. image:: https://img.shields.io/badge/DOI-10.71929/rubin/2586578-blue.svg
+  :target: https://doi.org/10.71929/rubin/2586578
+  :alt: DOI: 10.71929/rubin/2586578
+  :height: 16
+
+.. abstract::
+
+   The current reference catalog matcher used by LSST for astrometry has been found to not be adequately robust and fails to find matches on several current datasets. This document describes a potential replacement algorithm, and compares its performance with the current implementation.
+
+**DOI**: `10.71929/rubin/2586578 <https://doi.org/10.71929/rubin/2586578>`_
+
 ############
 Introduction
 ############
 
-The Large Synoptic Survey Telescope (LSST) “Stack” currently uses an implementation of
-:cite:`2007PASA...24..189T`'s Optimistic Pattern Matcher B (OPMb) for blind astrometric matching to a
+The Large Synoptic Survey Telescope (LSST) “Stack” :cite:`PSTN-019` currently uses an implementation of
+:cite:t:`2007PASA...24..189T`'s Optimistic Pattern Matcher B (OPMb) for blind astrometric matching to a
 reference catalog. This has been found to have a significant failure mode in very dense stellar fields with
 ~1000 references per CCD. This is caused by the algorithm being too greedy and finding false astrometric
 matches due to the matching space no longer being sparse at these densities. Rather than fine tune parameters
-for this algorithm to match successfully, we generalize the :cite:`2007PASA...24..189T` algorithm to work
+for this algorithm to match successfully, we generalize the :cite:t:`2007PASA...24..189T` algorithm to work
 consistently over the large range of stellar densities expected in LSST. In this work we present Pessimistic
 Pattern Matcher B (PPMb), which operates over the full dynamic range of densities expected in LSST.
 
@@ -27,7 +42,7 @@ pre-computing all of the :math:`n (n - 1) (n - 2) / 6` unique triangles availabl
 :math:`n` elements.  Instead the algorithms need only pre-compute the :math:`n (n - 1) / 2` unique pairs
 between reference objects.
 
-In :cite:`2007PASA...24..189T` OPMb is tested only up to hundreds of reference objects in a given observation.
+In :cite:t:`2007PASA...24..189T` OPMb is tested only up to hundreds of reference objects in a given observation.
 However, in the galactic plane, using the Gaia catalog as a reference, there can be of order 5000 reference
 objects in single CCD with a similar or greater number of detected sources. Experience with our current OPMb
 implementation indicates that this results in an excessive number of false positive matches and, ultimately,
@@ -88,7 +103,7 @@ Both OPMb and PPMb construct “pinwheel” shapes that are used to search withi
 detected source catalog by ordering the objects in the catalog from brightest to faintest flux. The image in
 :numref:`fig-matcher-diagram` shows this pinwheel in three dimensions. The pinwheel is created by choosing the
 first first :math:`N` brightest objects, treating the brightest of these as the pinwheel center (labeled
-:math:`A`). The fainter  If this pattern is not found in the astromtetric references then the brightest source
+:math:`A`). The fainter  If this pattern is not found in the astrometric references then the brightest source
 is discarded and a new :math:`N` point pinwheel is constructed starting with the second brightest object and
 so on until a requested number of patterns have been tested. In the current LSST implementation, the default
 value of :math:`N` is 150.
@@ -255,7 +270,7 @@ Automated matching tolerances
 =============================
 
 We automatically determine the starting match tolerance (:math:`\delta_{tol}`) in such a way that all patterns
-within each input catalog — source and reference — are clearly distinguished from each other. For each catalog
+within each input catalog — source and reference — are clearly distinguished from each other. For each catalog
 independently, we find the two most similar :math:`N` point patterns based on their spoke lengths. To do this,
 we sort the catalog by decreasing flux and create :math:`N` point patterns in the same way as the main
 algorithm, for a total of :math:`n-N` patterns where :math:`n` is the number of objects in catalog.  We
@@ -286,7 +301,7 @@ CFHTLS
 
 HiTS
 
-   We use data from the High Cadence Transient Survey (HiTS, :cite:`2016ApJ...832..155F`) observed on the
+   We use data from the High Cadence Transient Survey (HiTS, :cite:t:`2016ApJ...832..155F`) observed on the
    Blanco 4m telescope with the Dark Energy Camera (DECam). We use observations in the g and r bands and a
    total of 183 visits starting with visit id 0406285 for a total of 10,980 CCDs exposures.
 
@@ -303,7 +318,7 @@ For each of these data we use the same set of reference objects derived from the
 
 .. _Canada-France-Hawaii Telescope Legacy Survey: http://www.cfht.hawaii.edu/Science/CFHTLS/
 .. _New Horizons: http://www.nasa.gov/mission_pages/newhorizons/main/index.html
-.. _scipy: http://www.scipy.org
+.. _SciPy: http://www.scipy.org
 
 Software configuration
 ======================
@@ -311,7 +326,7 @@ Software configuration
 All the tests below were performed with a late December 2018 weekly of the LSST stack. Note that this means
 the tests were performed *before* the transition to the new ``SkyWcs`` system (:jira:`DM-10765`)
 
-Matching was performed within the regular match/fit cycle of ``AstrometryTask`` in the meas_astrom package.
+Matching was performed within the regular match/fit cycle of ``AstrometryTask`` in the ``meas_astrom`` package.
 Comparisons were made by configuring the Stack to use the default (OPMb) matcher on the same data.
 
 Both matchers were run with their default configurations, with the exception that we modified the match
@@ -326,7 +341,7 @@ Results
 We present three complementary sets of results from testing:
 
 #. The fraction of CCD exposures from each dataset that found a good astrometric solution;
-#. Match quality, as quantified by the RMS scatter on the astromtric solution;
+#. Match quality, as quantified by the RMS scatter on the astrometric solution;
 #. Run-time performance.
 
 Fraction of successful matches
@@ -533,14 +548,14 @@ main pattern creation loop of PPMb relies mostly on internal Python iteration wh
 in comparison the Stack implementation of OPMb which is coded in C++. The extra steps of PPMb then do not
 catastrophically increase the compute time to find astrometric matches.
 
-.. _NumPy: http://www.numpy.org/
+.. _NumPy: https://www.numpy.org/
 
 #######
 Summary
 #######
 
 In this technical note, we have described a generalization to the OPMb algorithm from
-:cite:`2007PASA...24..189T` that allows for astrometric matching of catalog of detected sources into a catalog
+:cite:t:`2007PASA...24..189T` that allows for astrometric matching of catalog of detected sources into a catalog
 of reference objects in tractable time for a larger dynamic range of object densities. Such a generalization
 is important for the denser galactic pointings of the LSST survey. We have shown that the PPMb algorithm to
 perform similarly both in terms of match success rate and WCS scatter to that of OPMb in data with a low
@@ -550,6 +565,4 @@ implementation of OPMb is written in a compiled language where as PPMb is pure P
 comparison between the two algorithms and codes, we conclude that one could switch the default behavior of the
 LSST Stack to PPMb without any notable drawbacks.
 
-.. bibliography:: lsst-texmf/texmf/bibtex/bib/refs_ads.bib
-   :encoding: utf-8
-   :style: lsst_aa
+.. bibliography::
